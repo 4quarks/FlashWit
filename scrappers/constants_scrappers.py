@@ -8,5 +8,9 @@ class FileNames:
     WEBDRIVER_UBUNTU = "chromedriver"
 
 
+class PathFiles:
+    DOWNLOADS = "downloads"
+
+
 
 
