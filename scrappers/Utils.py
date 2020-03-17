@@ -1,47 +1,8 @@
 from selenium import webdriver
 import os
 from bs4 import BeautifulSoup
-from enum import Enum
-
-
-class PropertiesAction:
-    def __init__(self):
-        self.labels = []
-        self.settings = []
-        self.correct_len = len(self.labels) == len(self.settings)
-
-
-class FINDBY(Enum):
-    FIND_BY_ID = 1
-    FIND_BY_CLASS = 2
-    FIND_BY_XPATH = 3
-
-
-class TODO(Enum):
-    SEND_KEYS = 4
-    EXECUTE_WRITE = 5
-    EXECUTE_CLICK = 6
-    SIMPLE_CLICK = 7
-    ACTION_CHAIN = 8
-
-
-class Label:
-    def __init__(self, header='', group='', reference='', xpath=''):
-        self.header = header
-        self.group = group
-        self.reference = reference
-        self.xpath = xpath
-        self.find_all = False
-        self.select = False
-        self.typeAction()
-
-    def typeAction(self):
-        if self.reference:
-            if self.header and self.group:
-                self.find_all = True
-            else:
-                self.select = True
-
+from scrappers.constants_scrappers import Constants
+import time
 
 def load_web_driver():
     path_webdrivers = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -61,28 +22,31 @@ def load_web_scraper(site):
     return browser.page_source
 
 
-def get_scrap_data(place_to_search, labels, get_selenium=False):
-    list_data = []
-    scraped_data = None
-    for label in labels:
-        if label.find_all:
-            scraped_data = place_to_search.findAll(label.header, {label.group: label.reference})
-        elif label.select:
-            scraped_data = place_to_search.select(label.reference)
-        if scraped_data:
-            if not get_selenium:
-                [list_data.append(element_found.get_text()) for element_found in scraped_data]
-            else:
-                list_data.append(scraped_data)
-    return list_data
-
-
 if __name__ == "__main__":
-    website = "https://tradingeconomics.com/stocks"
-    response = load_web_scraper(website)
+    dict_result_scrapping = {}
+    response = load_web_scraper(Constants.WEBSITE)
     soup = BeautifulSoup(response, 'html.parser')
-    propierties_data = PropertiesAction()
-    scraped_data = soup.findAll('tr', {'class': ['datatable-row', "datatable-row-alternating"]})
-    for row in scraped_data:
-        print(row.findAll('td', {'id': 'p'}))
-    print(scraped_data)
+    # scraped_data = soup.findAll('tr', {'class': ['datatable-row', "datatable-row-alternating"]})
+    tables = soup.findAll('div', {'class': "table-responsive"})
+    for country_market_bs4 in tables:
+        row_head = country_market_bs4.findAll('thead')
+        # headers = row_head[0].get_text().strip().split('\n')
+        # clean_headers = [element.strip() for element in headers if element.strip() != '']
+        country = row_head[0].findAll('th', {'style': "text-align: left;cursor: pointer;"})
+        country_name = country[0].get_text().strip()
+        dict_result_scrapping[country_name] = {}
+        print('Country: ' + country_name)
+        markets = country_market_bs4.findAll('tr', {'class': ['datatable-row', "datatable-row-alternating"]})
+        for row_market_bs4 in markets:
+            market_name_bs4 = row_market_bs4.findAll('td', {'class': 'datatable-item-first'})
+            market_name = market_name_bs4[0].get_text().strip()
+            print('Market name: ' + market_name)
+            dict_result_scrapping[country_name][market_name] = {}
+            value_market = row_market_bs4.findAll('td', {'class': 'datatable-item'})
+            for index, value in enumerate(value_market):
+                clean_value = value.get_text().strip()
+                dict_result_scrapping[country_name][market_name][Constants.TAGS[index]] = clean_value
+                print(Constants.TAGS[index] + ': ' + clean_value)
+            print('*'*10)
+    print()
+
