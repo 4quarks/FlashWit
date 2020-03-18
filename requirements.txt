@@ -1,3 +1,5 @@
+botocore
+boto3
 jsonpickle
 beautifulsoup4==4.8.2
 bs4==0.0.1

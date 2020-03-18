@@ -9,6 +9,8 @@ import pandas as pd
 from os import listdir
 from os.path import isfile, join
 import re
+from storage_s3 import upload_to_aws
+
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -24,7 +26,7 @@ def load_browser():
     path_webdrivers, directory_path = get_webdrivers_path()
     ############# LOAD BROWSER #############
     browser_options = webdriver.ChromeOptions()
-    browser_options.headless = True
+    # browser_options.headless = True  # Don't open window while scrapping
     prefs = {"download.default_directory": directory_path + "/" + PathFiles.DOWNLOADS + "/",
              'helperApps.neverAsk.saveToDisk': 'text/csv'}  # Don't open window to download
     browser_options.add_experimental_option("prefs", prefs)
@@ -72,9 +74,6 @@ def scrap_web(browser):
         country = row_head[0].findAll('th', {'style': "text-align: left;cursor: pointer;"})
         country_name = get_text_and_clean(country)
 
-        # headers = row_head[0].get_text().strip().split('\n')
-        # clean_headers = [element.strip() for element in headers if element.strip() != '']
-
         dict_result_scrapping[country_name] = {}
         logging.debug('Country: ' + country_name)
 
@@ -111,20 +110,27 @@ def download_files(list_companies, time_range):
     for company in list_companies:
         browser.get("https://www.nasdaq.com/market-activity/stocks/" + company + "/historical")
 
-        banner = browser.find_elements_by_class_name("evidon-banner-icon")[0]
+        # Click close Cookies banner
         time.sleep(1)
-        banner.click()
+        banner = browser.find_elements_by_class_name("evidon-banner-icon")
+        time.sleep(0.5)
+        banner[0].click()
 
-        download_button = browser.find_elements_by_class_name('historical-data__download')[0]
+        # Scroll until download
         time.sleep(1)
-        _ = download_button.location_once_scrolled_into_view
+        download_button = browser.find_elements_by_class_name('historical-data__download')
+        time.sleep(0.5)
+        _ = download_button[0].location_once_scrolled_into_view
 
-        max_data_category = browser.find_elements_by_xpath('//button[contains(text(), ' + time_range + ')]')[0]
+        # Click max range time
         time.sleep(1)
-        max_data_category.click()
+        max_data_category = browser.find_elements_by_xpath('//button[contains(text(), ' + time_range + ')]')
+        time.sleep(0.5)
+        max_data_category[0].click()
 
+        # Click download file
         time.sleep(1)
-        download_button.click()
+        download_button[0].click()
         time.sleep(3)
 
 
@@ -148,9 +154,15 @@ def clean_data(list_companies):
             data[column] = data[column].apply(lambda x: str(x).replace('$', ''))
 
         # Write new csv file
-        data.to_csv(path_files + list_companies[number_file] + '.csv', index=False)
+        path_file_to_save = path_files + list_companies[number_file] + '.csv'
+        data.to_csv(path_file_to_save, index=False)
+
+        # Submit file to s3
+        upload_to_aws(path_file_to_save, PathFiles.S3_BUCKET_NAME, list_companies[number_file])
 
 
 if __name__ == "__main__":
-    load_browser()
-    time.sleep(5)
+    clean_data(["aapl", "amzn", "tsla"])
+
+
+

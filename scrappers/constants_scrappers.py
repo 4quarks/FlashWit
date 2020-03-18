@@ -16,6 +16,7 @@ class FileNames:
 class PathFiles:
     DOWNLOADS = "downloads"
     WEBDRIVERS = "webdrivers"
+    S3_BUCKET_NAME = "flashwit"
 
 
 class TimeRange(Enum):

@@ -3,6 +3,8 @@ import jsonpickle
 from constants_scrappers import Constants, TimeRange
 import time
 from Utils import download_files, load_browser, scrap_web, quit_browser
+from Utils import clean_data
+
 
 app = Flask(__name__)
 
@@ -14,9 +16,10 @@ def api_download_files():
         try:
             companies = data["companies"]
             download_files(companies, TimeRange.MAX)
+            clean_data(companies)
             response = jsonpickle.encode(companies)
         except Exception as error:
-            response = error
+            response = str(error)
         return response
     else:
         return 'POST method. Ex: {companies : ["aapl", "amzn", "tsla"]}'
