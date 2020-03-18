@@ -1,7 +1,7 @@
 from selenium import webdriver
 import os
 from bs4 import BeautifulSoup
-from scrappers.constants_scrappers import Constants, FileNames, PathFiles, TimeRange
+from constants_scrappers import Constants, FileNames, PathFiles
 import time
 import logging
 import json

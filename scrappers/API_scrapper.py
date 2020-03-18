@@ -1,8 +1,8 @@
 from flask import Flask, request
 import jsonpickle
-from scrappers.constants_scrappers import Constants, TimeRange
+from constants_scrappers import Constants, TimeRange
 import time
-from scrappers.Utils import download_files, load_browser, scrap_web
+from Utils import download_files, load_browser, scrap_web
 
 app = Flask(__name__)
 
