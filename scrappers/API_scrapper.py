@@ -2,7 +2,7 @@ from flask import Flask, request
 import jsonpickle
 from constants_scrappers import Constants, TimeRange
 import time
-from Utils import download_files, load_browser, scrap_web
+from Utils import download_files, load_browser, scrap_web, quit_browser
 
 app = Flask(__name__)
 
@@ -22,7 +22,7 @@ def api_download_files():
         return 'POST method. Ex: {companies : ["aapl", "amzn", "tsla"]}'
 
 
-@app.route('/launch_scrapper', methods=['POST'])
+@app.route('/launch_scrapper', methods=['GET'])
 def launch_scrapper():
     try:
         browser = load_browser()
@@ -36,11 +36,12 @@ def launch_scrapper():
     return response
 
 
-@app.route('/shutdown', methods=['POST'])
+@app.route('/shutdown', methods=['GET'])
 def shutdown():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
         raise RuntimeError('Not running with the Werkzeug Server')
+    quit_browser()
     func()
     return 'Server shutting down...'
 

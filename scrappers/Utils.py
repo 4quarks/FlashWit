@@ -13,11 +13,15 @@ import re
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
-def load_browser():
+def get_webdrivers_path():
     ############# GET WEB DRIVERS PATH #############
     directory_path = os.path.dirname(os.path.realpath(__file__))
     path_webdrivers = directory_path + "/" + PathFiles.WEBDRIVERS + '/' + FileNames.WEBDRIVER_UBUNTU
+    return path_webdrivers, directory_path
 
+
+def load_browser():
+    path_webdrivers, directory_path = get_webdrivers_path()
     ############# LOAD BROWSER #############
     browser_options = webdriver.ChromeOptions()
     prefs = {"download.default_directory": directory_path + "/" + PathFiles.DOWNLOADS + "/",
@@ -26,6 +30,12 @@ def load_browser():
     browser_options.add_argument("--start-maximized")  # Full screen
     browser = webdriver.Chrome(path_webdrivers, chrome_options=browser_options)
     return browser
+
+
+def quit_browser():
+    path_webdrivers, directory_path = get_webdrivers_path()
+    browser = webdriver.Chrome(path_webdrivers)
+    browser.quit()
 
 
 def get_web_html(browser, site):
@@ -138,3 +148,8 @@ def clean_data(list_companies):
 
         # Write new csv file
         data.to_csv(path_files + list_companies[number_file] + '.csv', index=False)
+
+
+if __name__ == "__main__":
+    load_browser()
+    quit_browser()
