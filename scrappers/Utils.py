@@ -24,6 +24,7 @@ def load_browser():
     path_webdrivers, directory_path = get_webdrivers_path()
     ############# LOAD BROWSER #############
     browser_options = webdriver.ChromeOptions()
+    browser_options.headless = True
     prefs = {"download.default_directory": directory_path + "/" + PathFiles.DOWNLOADS + "/",
              'helperApps.neverAsk.saveToDisk': 'text/csv'}  # Don't open window to download
     browser_options.add_experimental_option("prefs", prefs)
@@ -152,4 +153,4 @@ def clean_data(list_companies):
 
 if __name__ == "__main__":
     load_browser()
-    quit_browser()
+    time.sleep(5)

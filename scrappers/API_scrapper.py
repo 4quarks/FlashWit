@@ -22,7 +22,7 @@ def api_download_files():
         return 'POST method. Ex: {companies : ["aapl", "amzn", "tsla"]}'
 
 
-@app.route('/launch_scrapper', methods=['GET'])
+@app.route('/launch_scrapper', methods=['GET', 'POST'])
 def launch_scrapper():
     try:
         browser = load_browser()
@@ -30,13 +30,12 @@ def launch_scrapper():
             response = scrap_web(browser)
             # -----------> KAFKA connected with the json_response
             time.sleep(Constants.FREQUENCY_SCRAPPING_MS / 1000)
-        # browser.quit()
     except Exception as error:
         response = error
     return response
 
 
-@app.route('/shutdown', methods=['GET'])
+@app.route('/shutdown', methods=['GET', 'POST'])
 def shutdown():
     func = request.environ.get('werkzeug.server.shutdown')
     if func is None:
