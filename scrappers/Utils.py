@@ -1,11 +1,10 @@
 from selenium import webdriver
 import os
 from bs4 import BeautifulSoup
-from scrappers.constants_scrappers import Constants, FileNames, PathFiles
+from scrappers.constants_scrappers import Constants, FileNames, PathFiles, TimeRange
 import time
 import logging
 import json
-from enum import Enum
 import pandas as pd
 from os import listdir
 from os.path import isfile, join
@@ -17,7 +16,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 def load_browser():
     ############# GET WEB DRIVERS PATH #############
     directory_path = os.path.dirname(os.path.realpath(__file__))
-    path_webdrivers = directory_path + "/" + FileNames.WEBDRIVER_UBUNTU
+    path_webdrivers = directory_path + "/" + PathFiles.WEBDRIVERS + '/' + FileNames.WEBDRIVER_UBUNTU
 
     ############# LOAD BROWSER #############
     browser_options = webdriver.ChromeOptions()
@@ -93,25 +92,6 @@ def scrap_web(browser):
     return json_result
 
 
-def launch_scrapper():
-    ############# OPEN BROWSER #############
-    browser = load_browser()
-    while True:  # Don't close the browser
-        json_response = scrap_web(browser)
-        # -----------> KAFKA connected with the json_response
-        time.sleep(Constants.FREQUENCY_SCRAPPING_MS / 1000)
-    # browser.quit()
-
-
-class TimeRange(Enum):
-    ONE_MONTH = '1M'
-    SIX_MONTHS = '6M'
-    ONE_YEAR = '1Y'
-    FIVE_YEARS = '5Y'
-    MAX = 'MAX'
-    YTD = 'YTD'
-
-
 def download_files(list_companies, time_range):
     ############# OPEN BROWSER #############
     from selenium import webdriver
@@ -152,17 +132,9 @@ def clean_data(list_companies):
 
         # Read downloaded data and clean it
         data = pd.read_csv(path_files + file)
-        data.columns = ["Date", "Close($)", "Volume", "Open($)", "High($)", "Low($)"]
+        data.columns = Constants.COLUMNS_HISTORICAL_DATA
         for column in data.columns:
             data[column] = data[column].apply(lambda x: str(x).replace('$', ''))
 
         # Write new csv file
         data.to_csv(path_files + list_companies[number_file] + '.csv', index=False)
-
-
-if __name__ == "__main__":
-    # launch_scrapper()
-    companies = ["aapl", "amzn", "tsla"]
-    # download_files(companies, TimeRange.MAX)
-    clean_data(companies)
-
